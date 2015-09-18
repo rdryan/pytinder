@@ -9,7 +9,7 @@ auth
 
 .. module:: auth
     :platform: Linux, MacOSX, Windows
-    :synopsis:
+    :synopsis: Provide resources for authorization retrieval.
     :created: 09-17-2015 22:38:51
     :modified: 09-17-2015 22:38:51
 .. moduleauthor:: ritashugisha (ritashugisha@gmail.com)
@@ -30,10 +30,23 @@ from bs4 import BeautifulSoup
 
 
 class Tinder(object):
+    """ Tinder credentials retrieval.
+
+    """
+
     _auth_url = glbl.API_AUTH_URL
 
     @classmethod
     def credentials(self, fb_token, fb_id):
+        """ Retrieve Tinder access token.
+
+        :param fb_token: Facebook access token
+        :param fb_id: Facebook user id
+        :type fb_token: basestring
+        :type fb_id: basestring
+        :rtype: dict
+
+        """
 
         glbl.LOG.info((
             'retrieving `{}` Tinder credentials via `{}` ...'
@@ -46,7 +59,7 @@ class Tinder(object):
         )
 
         if resp.status_code == 200:
-            return json.loads(resp.text)
+            return resp.json()
         else:
             raise exceptions.TinderCredentialsRetrievalException((
                 'failed to retrieve Tinder credentials, {}'
@@ -54,11 +67,24 @@ class Tinder(object):
 
 
 class Facebook(object):
+    """ Facebook credentials retrieval.
+
+    """
+
     _auth_url = glbl.FB_AUTH_URL
     _default_url = glbl.FB_DEFAULT_URL
 
     @classmethod
     def credentials(self, email, pass_):
+        """ Retrieve Facebook credentials.
+
+        :param email: Facebook login email
+        :param pass_: Facebook login password
+        :type email: basestring
+        :type pass_: basestring
+        :rtype: dict
+
+        """
 
         glbl.LOG.info((
             'retrieving `{}` Facebook credentials via splinter ...'

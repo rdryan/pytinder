@@ -9,7 +9,7 @@ user
 
 .. module:: user
     :platform: Linux, MacOSX, Windows
-    :synopsis:
+    :synopsis: Main module client.
     :created: 09-17-2015 22:30:08
     :modified: 09-17-2015 22:30:08
 .. moduleauthor:: ritashugisha (ritashugisha@gmail.com)
@@ -30,24 +30,40 @@ import exceptions
 import storage
 import utils
 import auth
+import user
+import match
 
 import requests
 
 
 class Client(object):
+    """ Main client class for accessing personal user and Tinder functions.
+
+    """
+
     _raw = _id = None
     storage = None
 
     def __init__(self, fb_user, fb_pass=None):
+        """ Initialize client class.
+
+        :param fb_user: Tinder user's Facebook login username
+        :param fb_pass: Tinder user's Facebook login password
+        :type fb_user: basestring
+        :type fb_pass: basestring
+
+        """
+
         if not glbl.BOOTSTRAPPED:
             _bootstrap()
 
         rebuild_cred = True
         if isinstance(fb_user, basestring):
             if len(fb_user) > 0:
-                self.storage = storage.Storage()
+                self.storage = storage.AuthStorage()
                 self._id = self.storage.get_user(fb_user)
 
+                # try to load user from storage (if exists)
                 if self.id:
                     rebuild_cred = False
                     self.deserialize()
@@ -60,19 +76,23 @@ class Client(object):
                         self.storage.remove_cred(self._id)
                         rebuild_cred = True
 
+                # build credentials via authentication methods
                 if rebuild_cred:
                     if fb_pass is not None:
                         if isinstance(fb_pass, basestring):
                             if len(fb_pass) > 0:
 
+                                # get facebook credentials
                                 fb_cred = auth.Facebook.credentials(
                                     fb_user, fb_pass
                                 )
+                                # set _raw to tinder credentials
                                 self._raw = auth.Tinder.credentials(
                                     fb_cred['token'], fb_cred['id']
                                 )['user']
                                 self._id = self._raw['_id']
 
+                                # serialize newly build credentials
                                 self.serialize()
                                 self.storage.store_cred(
                                     self.id, fb_user, self.token
@@ -104,6 +124,12 @@ class Client(object):
             ))
 
     def __repr__(self):
+        """ Custom representation of the Client.
+
+        :rtype: string
+
+        """
+
         return '<Client {self.id} ({self.full_name})>'.format(
             self=self
         )
@@ -184,6 +210,10 @@ class Client(object):
         return os.path.join(glbl.USER_PICKLE_DIR, '{}.pickle'.format(self.id))
 
     def serialize(self):
+        """ Serialize the client object to storage.
+
+        """
+
         if os.path.exists(os.path.dirname(self._storage)):
             glbl.LOG.debug((
                 'serializing {} to `{}` ...'
@@ -191,6 +221,10 @@ class Client(object):
             pickle.dump(self, open(self._storage, 'wb'))
 
     def deserialize(self):
+        """ Deserialize the client object from storage.
+
+        """
+
         if utils.file_exists(self._storage):
             glbl.LOG.debug((
                 'deserializing user from `{}` ...'
@@ -200,6 +234,12 @@ class Client(object):
             )
 
     def recommendations(self):
+        """ Retrieve client's recommendations.
+
+        :rtype: list of users
+
+        """
+
         glbl.LOG.info((
             'retrieving recommendations for user `{}` ({}) ...'
         ).format(self.id, self.full_name))
@@ -209,17 +249,25 @@ class Client(object):
             headers=self._header
         )
         if resp.status_code == 200:
-            return resp.json()['results']
+            return [user.User(i) for i in resp.json()['results']]
         raise exceptions.TinderRetrievalException((
             'could not retrieve recommendations from `{}`, {}'
         ).format(glbl.API_RECOMMENDATIONS_URL, resp))
 
     def like(self, t_id):
+        """ Like a user.
+
+        :param t_id: Tinder id of the user
+        :type t_id: basestring
+        :rtype: dict
+
+        """
+
         glbl.LOG.info(('liking user `{}` ...').format(t_id))
 
         resp = requests.get(
             glbl.API_LIKE_URL.format(id=t_id),
-            header=self._header
+            headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
@@ -228,11 +276,19 @@ class Client(object):
         ).format(glbl.API_LIKE_URL.format(id=t_id), resp))
 
     def dislike(self, t_id):
+        """ Dislike a user (pass).
+
+        :param t_id: Tinder id of the user
+        :type t_id: basestring
+        :rtype: dict
+
+        """
+
         glbl.LOG.info(('disliking user `{}` ...').format(t_id))
 
         resp = requests.get(
             glbl.API_DISLIKE_URL.format(id=t_id),
-            header=self._header
+            headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
@@ -241,6 +297,16 @@ class Client(object):
         ).format(glbl.API_LIKE_URL.format(id=t_id), resp))
 
     def send_message(self, t_id, message):
+        """ Send a message to a user match.
+
+        :param t_id: Tinder id of the user
+        :param message: Message to be sent
+        :type t_id: basestring
+        :type message: basestring
+        :rtype: dict
+
+        """
+
         glbl.LOG.info(('sending `{}` to user `{}` ...').format(message, t_id))
 
         resp = requests.get(
@@ -251,9 +317,18 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send message \'{}\' query to `{}`, {}'
-        ).format(message, glbl.API_LIKE_URL.format(id=t_id), resp))
+        ).format(message, glbl.API_MESSAGE_URL.format(id=t_id), resp))
 
+    # FIXME: Remove is possibly broken, unkown removal format
     def remove(self, t_id):
+        """ Remove user match.
+
+        :param t_id: Tinder id of the user
+        :type t_id: basestring
+        :rtype: dict
+
+        """
+
         glbl.LOG.info((
             'removing user `{}` from user `{}` matches ...'
         ).format(t_id, self.id))
@@ -266,9 +341,15 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not remove user `{}` from user `{}` matches, {}'
-        ).format(message, glbl.API_LIKE_URL.format(id=t_id), self.id, resp))
+        ).format(message, glbl.API_REMOVE_URL.format(id=t_id), self.id, resp))
 
     def profile(self):
+        """ Retrieve client profile.
+
+        :rtype: dict
+
+        """
+
         glbl.LOG.info((
             'retrieving user `{}` (self) profile info ...'
         ).format(self.id))
@@ -284,6 +365,14 @@ class Client(object):
         ).format(self.id, glbl.API_PROFILE_URL, resp))
 
     def user(self, t_id):
+        """ Retrieve Tinder user profile.
+
+        :param t_id: Tinder id of the user
+        :type t_id: basestring
+        :rtype: dict
+
+        """
+
         glbl.LOG.info((
             'retrieving user `{}` profile info ...'
         ).format(t_id))
@@ -293,12 +382,20 @@ class Client(object):
             headers=self._header
         )
         if resp.status_code == 200:
-            return resp.json()['results']
+            return user.User(resp.json()['results'])
         raise exceptions.TinderRetrievalException((
             'could not retrieve user `{}` profile info from `{}`, {}'
         ).format(t_id, glbl.API_USER_URL.format(id=t_id), resp))
 
     def updates(self):
+        """ Retrieve client's updates.
+
+        ..note:: Updates also include matches and messages information.
+
+        :rtype: dict
+
+        """
+
         glbl.LOG.info((
             'retrieving user `{}` (self) updates ...'
         ).format(self.id))
@@ -308,12 +405,24 @@ class Client(object):
             headers=self._header
         )
         if resp.status_code == 200:
-            return resp.json()
+            retn = resp.json()
+            retn['matches'] = [match.Match(i) for i in retn['matches']]
+            return retn
         raise exceptions.TinderRetrievalException((
-            'could not retrieve user `{}`(self) updates from `{}`, {}'
+            'could not retrieve user `{}` (self) updates from `{}`, {}'
         ).format(self.id, glbl.API_UPDATES_URL, resp))
 
     def ping(self, latitude, longitude):
+        """ Update client location:
+
+        :param latitude: Latitude of desired location
+        :param longitude: Longitude of desired location
+        :type latitude: float
+        :type longitude: float
+        :rtype: dict
+
+        """
+
         if isinstance(latitude, float) and isinstance(longitude, float):
             if -90.0 < latitude < 90:
                 if -180.0 < longitude < 180.0:

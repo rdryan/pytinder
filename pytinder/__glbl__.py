@@ -115,16 +115,18 @@ API_APP_VERSION = '3'
 
 API_BASE_URL = 'https://api.gotinder.com'
 API_AUTH_URL = '{}/auth'.format(API_BASE_URL)
-API_USER_URL = '{}/user'.format(API_BASE_URL)
-API_RECOMMENDATIONS_URL = '{}/recs'.format(API_USER_URL)
-API_PING_URL = '{}/ping'.format(API_USER_URL)
-API_MATCHES_URL = '{}/matches'.format(API_USER_URL)
-API_MESSAGE_URL = API_REMOVE_URL = '{}/{{id}}'.format(API_MATCHES_URL)
 API_LIKE_URL = '{}/like/{{id}}'.format(API_BASE_URL)
 API_DISLIKE_URL = '{}/pass/{{id}}'.format(API_BASE_URL)
 API_PROFILE_URL = '{}/profile'.format(API_BASE_URL)
-API_USER_URL = '{}/{{id}}'.format(API_USER_URL)
 API_UPDATES_URL = '{}/updates'.format(API_BASE_URL)
+API_USER_URL = '{}/user'.format(API_BASE_URL)
+
+API_RECOMMENDATIONS_URL = '{}/recs'.format(API_USER_URL)
+API_USER_URL = '{}/{{id}}'.format(API_USER_URL)
+API_PING_URL = '{}/ping'.format(API_USER_URL)
+API_MATCHES_URL = '{}/matches'.format(API_USER_URL)
+API_MESSAGE_URL = API_REMOVE_URL = '{}/{{id}}'.format(API_MATCHES_URL)
+
 
 FB_DEFAULT_URL = 'https://www.facebook.com/'
 FB_DEVEL_CLIENT_ID = '895324067218904'

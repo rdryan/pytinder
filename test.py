@@ -16,4 +16,4 @@ test
 
 """
 
-import tinderbot
+import pytinder

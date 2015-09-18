@@ -9,7 +9,7 @@ exceptions
 
 .. module:: exceptions
     :platform: Linux, MacOSX, Windows
-    :synopsis:
+    :synopsis: Define custom module level exceptions.
     :created: 09-17-2015 22:33:12
     :modified: 09-17-2015 22:33:12
 .. moduleauthor:: ritashugisha (ritashugisha@gmail.com)
