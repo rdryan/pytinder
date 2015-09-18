@@ -6,5 +6,5 @@ A makeshift implementation of API access to Tinder through Facebook using Python
 from pytinder import Client
 client = Client('facebook_email', 'facebook_password')
 for tinder_user in client.recommendations():
-    client.like(tinder_user.id)
+    client.like(tinder_user)
 ```

@@ -98,15 +98,17 @@ class Client(object):
                                     self.id, fb_user, self.token
                                 )
                             else:
-                                raise exceptions.FacebookCredentialsFormatException((
-                                    'missing Facebook password, '
-                                    'parameter is empty'
-                                ))
+                                raise exceptions.\
+                                    FacebookCredentialsFormatException((
+                                        'missing Facebook password, '
+                                        'parameter is empty'
+                                    ))
                         else:
-                            raise exceptions.FacebookCredentialsFormatException((
-                                'invalid Facebook password format, '
-                                'expected password string'
-                            ))
+                            raise exceptions.\
+                                FacebookCredentialsFormatException((
+                                    'invalid Facebook password format, '
+                                    'expected password string'
+                                ))
                     else:
                         raise exceptions.MissingCredentialsException((
                             'missing required Facebook password parameter'
@@ -254,94 +256,116 @@ class Client(object):
             'could not retrieve recommendations from `{}`, {}'
         ).format(glbl.API_RECOMMENDATIONS_URL, resp))
 
-    def like(self, t_id):
+    def like(self, t_user):
         """ Like a user.
 
-        :param t_id: Tinder id of the user
-        :type t_id: basestring
+        :param t_user: Tinder user
+        :type t_user: user.User
         :rtype: dict
 
         """
 
-        glbl.LOG.info(('liking user `{}` ...').format(t_id))
+        if not isinstance(t_user, user.User) or not t_user.id:
+            raise ValueError((
+                'invalid user parameter, expected user.User object'
+            ))
+        glbl.LOG.info(('liking user `{}` ...').format(t_user))
 
         resp = requests.get(
-            glbl.API_LIKE_URL.format(id=t_id),
+            glbl.API_LIKE_URL.format(id=t_user.id),
             headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send like query to `{}`, {}'
-        ).format(glbl.API_LIKE_URL.format(id=t_id), resp))
+        ).format(glbl.API_LIKE_URL.format(id=t_user.id), resp))
 
-    def dislike(self, t_id):
+    def dislike(self, t_user):
         """ Dislike a user (pass).
 
-        :param t_id: Tinder id of the user
-        :type t_id: basestring
+        :param t_user: Tinder user
+        :type t_user: user.User
         :rtype: dict
 
         """
 
-        glbl.LOG.info(('disliking user `{}` ...').format(t_id))
+        if not isinstance(t_user, user.User) or not t_user.id:
+            raise ValueError((
+                'invalid user parameter, expected user.User object'
+            ))
+        glbl.LOG.info(('disliking user `{}` ...').format(t_user))
 
         resp = requests.get(
-            glbl.API_DISLIKE_URL.format(id=t_id),
+            glbl.API_DISLIKE_URL.format(id=t_user.id),
             headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send dislike query to `{}`, {}'
-        ).format(glbl.API_LIKE_URL.format(id=t_id), resp))
+        ).format(glbl.API_DISLIKE_URL.format(id=t_user.id), resp))
 
-    def send_message(self, t_id, message):
+    def send_message(self, t_user, message):
         """ Send a message to a user match.
 
-        :param t_id: Tinder id of the user
+        :param t_user: Tinder user
         :param message: Message to be sent
-        :type t_id: basestring
+        :type t_user: user.User
         :type message: basestring
         :rtype: dict
 
         """
 
-        glbl.LOG.info(('sending `{}` to user `{}` ...').format(message, t_id))
+        if not isinstance(t_user, user.User) or not t_user.id:
+            raise ValueError((
+                'invalid user parameter, expected user.User object'
+            ))
+        if not isinstance(message, basestring) or len(message) <= 0:
+            raise ValueError((
+                'invalid message parameter, expected populated string'
+            ))
+        glbl.LOG.info((
+            'sending `{}` to user `{}` ...'
+        ).format(message, t_user))
 
         resp = requests.get(
-            glbl.API_MESSAGE_URL.format(id=t_id),
+            glbl.API_MESSAGE_URL.format(id=t_user.id),
             headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send message \'{}\' query to `{}`, {}'
-        ).format(message, glbl.API_MESSAGE_URL.format(id=t_id), resp))
+        ).format(message, glbl.API_MESSAGE_URL.format(id=t_user.id), resp))
 
     # FIXME: Remove is possibly broken, unkown removal format
-    def remove(self, t_id):
+    def remove(self, t_user):
         """ Remove user match.
 
-        :param t_id: Tinder id of the user
-        :type t_id: basestring
+        :param t_user: Tinder user
+        :type t_user: user.User
         :rtype: dict
 
         """
 
+        if not isinstance(t_user, user.User) or not t_user.id:
+            raise ValueError((
+                'invalid user parameter, expected user.User object'
+            ))
         glbl.LOG.info((
             'removing user `{}` from user `{}` matches ...'
-        ).format(t_id, self.id))
+        ).format(t_user, self))
 
         resp = requests.delete(
-            glbl.API_REMOVE_URL.format(id=t_id),
+            glbl.API_REMOVE_URL.format(id=t_user.id),
             headers=self._header
         )
         if resp.status_code == 200:
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not remove user `{}` from user `{}` matches, {}'
-        ).format(message, glbl.API_REMOVE_URL.format(id=t_id), self.id, resp))
+        ).format(t_user, self, resp))
 
     def profile(self):
         """ Retrieve client profile.
