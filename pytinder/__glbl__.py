@@ -143,7 +143,7 @@ FB_AUTH_URL = (
 ).format(client_id=FB_PUBLIC_CLIENT_ID)
 
 # Module logging
-LOGGING_LVL = logging.DEBUG
+LOGGING_LVL = logging.INFO
 LOGGING_FMT = (
     '[%(asctime)s] [%(levelname)-8s] '
     '[%(filename)s@%(funcName)s:%(lineno)s] %(message)s'
