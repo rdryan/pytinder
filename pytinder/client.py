@@ -242,7 +242,7 @@ class Client(object):
 
         """
 
-        glbl.LOG.info((
+        glbl.LOG.debug((
             'retrieving recommendations for user `{}` ({}) ...'
         ).format(self.id, self.full_name))
 
@@ -252,7 +252,11 @@ class Client(object):
         )
         if resp.status_code == 200:
             try:
-                return [user.User(i) for i in resp.json()['results']]
+                return [
+                    user.User(i)
+                    for i in resp.json()['results']
+                    if 'tinder' not in i['user']['name'].lower()
+                ]
             except KeyError:
                 return []
         raise exceptions.TinderRetrievalException((
@@ -378,7 +382,7 @@ class Client(object):
 
         """
 
-        glbl.LOG.info((
+        glbl.LOG.debug((
             'retrieving user `{}` (self) profile info ...'
         ).format(self.id))
 
@@ -401,7 +405,7 @@ class Client(object):
 
         """
 
-        glbl.LOG.info((
+        glbl.LOG.debug((
             'retrieving user `{}` profile info ...'
         ).format(t_id))
 
@@ -424,7 +428,7 @@ class Client(object):
 
         """
 
-        glbl.LOG.info((
+        glbl.LOG.debug((
             'retrieving user `{}` (self) updates ...'
         ).format(self.id))
 
@@ -454,6 +458,9 @@ class Client(object):
         if isinstance(latitude, float) and isinstance(longitude, float):
             if -90.0 < latitude < 90:
                 if -180.0 < longitude < 180.0:
+                    glbl.LOG.info((
+                        'changing ping location ({}, {}) ...'
+                    ).format(latitude, longitude))
                     resp = requests.post(
                         glbl.API_PING_URL,
                         data={'lat': latitude, 'lon': longitude},
