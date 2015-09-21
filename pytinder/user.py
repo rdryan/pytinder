@@ -16,6 +16,8 @@ user
 
 """
 
+import utils
+
 
 class User(object):
     """ User object definition.
@@ -58,7 +60,7 @@ class User(object):
 
     @property
     def birth_date(self):
-        return self._raw['birth_date']
+        return utils.parse_date(self._raw['birth_date'])
 
     @property
     def birth_date_info(self):
@@ -96,4 +98,4 @@ class User(object):
 
     @property
     def ping_time(self):
-        return self._raw['ping_time']
+        return utils.parse_date(self._raw['ping_time'])

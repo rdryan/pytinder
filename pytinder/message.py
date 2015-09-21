@@ -16,6 +16,7 @@ message
 
 """
 
+import utils
 import user
 import client
 
@@ -45,11 +46,11 @@ class Message(object):
 
     @property
     def created_date(self):
-        return self._raw['reated_date']
+        return utils.parse_date(self._raw['reated_date'])
 
     @property
     def sent_date(self):
-        return self._raw['sent_date']
+        return utils.parse_date(self._raw['sent_date'])
 
     @property
     def timestamp(self):

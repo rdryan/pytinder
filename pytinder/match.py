@@ -16,6 +16,7 @@ match
 
 """
 
+import utils
 import user
 import message
 
@@ -67,7 +68,7 @@ class Match(object):
 
     @property
     def created_date(self):
-        return self._raw['created_date']
+        return utils.parse_date(self._raw['created_date'])
 
     @property
     def participants(self):

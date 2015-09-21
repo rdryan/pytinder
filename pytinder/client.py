@@ -251,7 +251,10 @@ class Client(object):
             headers=self._header
         )
         if resp.status_code == 200:
-            return [user.User(i) for i in resp.json()['results']]
+            try:
+                return [user.User(i) for i in resp.json()['results']]
+            except KeyError:
+                return []
         raise exceptions.TinderRetrievalException((
             'could not retrieve recommendations from `{}`, {}'
         ).format(glbl.API_RECOMMENDATIONS_URL, resp))
@@ -306,38 +309,39 @@ class Client(object):
             'could not send dislike query to `{}`, {}'
         ).format(glbl.API_DISLIKE_URL.format(id=t_user.id), resp))
 
-    def send_message(self, t_user, message):
+    def send_message(self, t_match, message):
         """ Send a message to a user match.
 
-        :param t_user: Tinder user
+        :param t_match: Tinder match
         :param message: Message to be sent
-        :type t_user: user.User
+        :type t_match: match.Match
         :type message: basestring
         :rtype: dict
 
         """
 
-        if not isinstance(t_user, user.User) or not t_user.id:
+        if not isinstance(t_match, match.Match) or not t_match.id:
             raise ValueError((
-                'invalid user parameter, expected user.User object'
+                'invalid user parameter, expected match.Match object'
             ))
         if not isinstance(message, basestring) or len(message) <= 0:
             raise ValueError((
                 'invalid message parameter, expected populated string'
             ))
         glbl.LOG.info((
-            'sending `{}` to user `{}` ...'
-        ).format(message, t_user))
+            'sending `{}` to match `{}` ...'
+        ).format(message, t_match))
 
-        resp = requests.get(
-            glbl.API_MESSAGE_URL.format(id=t_user.id),
-            headers=self._header
+        resp = requests.post(
+            glbl.API_MESSAGE_URL.format(id=t_match.id),
+            headers=self._header,
+            data={'message': message}
         )
         if resp.status_code == 200:
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send message \'{}\' query to `{}`, {}'
-        ).format(message, glbl.API_MESSAGE_URL.format(id=t_user.id), resp))
+        ).format(message, glbl.API_MESSAGE_URL.format(id=t_match.id), resp))
 
     # FIXME: Remove is possibly broken, unkown removal format
     def remove(self, t_user):

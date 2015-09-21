@@ -17,6 +17,7 @@ utils
 """
 
 import os
+import dateutil.parser
 
 
 def file_exists(filepath):
@@ -41,3 +42,15 @@ def file_populated(filepath):
     """
 
     return file_exists(filepath) and os.stat(filepath).st_size > 0
+
+
+def parse_date(date):
+    """ Parse the Tinder date format into a datetime object.
+
+    :param date: IOS 8601 date
+    :type date: basestring
+    :rtype: Datetime
+
+    """
+
+    return dateutil.parser.parse(date)
