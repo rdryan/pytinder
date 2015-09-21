@@ -255,7 +255,6 @@ class Client(object):
                 return [
                     user.User(i)
                     for i in resp.json()['results']
-                    if 'tinder' not in i['user']['name'].lower()
                 ]
             except KeyError:
                 return []
