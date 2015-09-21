@@ -95,7 +95,11 @@ class Client(object):
                                 # serialize newly build credentials
                                 self.serialize()
                                 self.storage.store_cred(
-                                    self.id, fb_user, self.token
+                                    fb_user,
+                                    fb_cred['token'],
+                                    fb_cred['id'],
+                                    self.token,
+                                    self.id
                                 )
                             else:
                                 raise exceptions.\
@@ -235,6 +239,22 @@ class Client(object):
                 pickle.load(open(self._storage, 'rb')).__dict__
             )
 
+    def refresh_access(self):
+        glbl.LOG.info(('refreshing client {} access token ...').format(self))
+        self.storage._load()
+        client_auth = self.storage.raw[self.id]
+        cred = auth.Tinder.credentials(
+            client_auth['facebook_access'],
+            client_auth['facebook_id']
+        )['user']
+        self.storage.store_cred(
+            client_auth['user'],
+            cred['api_token'],
+            cred['_id'],
+            self.token,
+            self.id
+        )
+
     def recommendations(self):
         """ Retrieve client's recommendations.
 
@@ -260,7 +280,7 @@ class Client(object):
                 return []
         raise exceptions.TinderRetrievalException((
             'could not retrieve recommendations from `{}`, {}'
-        ).format(glbl.API_RECOMMENDATIONS_URL, resp))
+        ).format(glbl.API_RECOMMENDATIONS_URL, resp.text))
 
     def like(self, t_user):
         """ Like a user.
@@ -285,7 +305,7 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send like query to `{}`, {}'
-        ).format(glbl.API_LIKE_URL.format(id=t_user.id), resp))
+        ).format(glbl.API_LIKE_URL.format(id=t_user.id), resp.text))
 
     def dislike(self, t_user):
         """ Dislike a user (pass).
@@ -310,7 +330,7 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send dislike query to `{}`, {}'
-        ).format(glbl.API_DISLIKE_URL.format(id=t_user.id), resp))
+        ).format(glbl.API_DISLIKE_URL.format(id=t_user.id), resp.text))
 
     def send_message(self, t_match, message):
         """ Send a message to a user match.
@@ -344,7 +364,10 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderResponseException((
             'could not send message \'{}\' query to `{}`, {}'
-        ).format(message, glbl.API_MESSAGE_URL.format(id=t_match.id), resp))
+        ).format(
+            message,
+            glbl.API_MESSAGE_URL.format(id=t_match.id), resp.text)
+        )
 
     # FIXME: Remove is possibly broken, unkown removal format
     def remove(self, t_user):
@@ -393,7 +416,7 @@ class Client(object):
             return resp.json()
         raise exceptions.TinderRetrievalException((
             'could not retrieve user `{}` (self) profile info from `{}`, {}'
-        ).format(self.id, glbl.API_PROFILE_URL, resp))
+        ).format(self.id, glbl.API_PROFILE_URL, resp.text))
 
     def user(self, t_id):
         """ Retrieve Tinder user profile.
@@ -416,7 +439,7 @@ class Client(object):
             return user.User(resp.json()['results'])
         raise exceptions.TinderRetrievalException((
             'could not retrieve user `{}` profile info from `{}`, {}'
-        ).format(t_id, glbl.API_USER_URL.format(id=t_id), resp))
+        ).format(t_id, glbl.API_USER_URL.format(id=t_id), resp.text))
 
     def updates(self):
         """ Retrieve client's updates.
@@ -441,7 +464,7 @@ class Client(object):
             return retn
         raise exceptions.TinderRetrievalException((
             'could not retrieve user `{}` (self) updates from `{}`, {}'
-        ).format(self.id, glbl.API_UPDATES_URL, resp))
+        ).format(self.id, glbl.API_UPDATES_URL, resp.text))
 
     def ping(self, latitude, longitude):
         """ Update client location:
@@ -469,7 +492,7 @@ class Client(object):
                         return resp.json()
                     raise exceptions.TinderResponseException((
                         'could not ping location ({}, {}), {}'
-                    ).format(latitude, longitude, resp))
+                    ).format(latitude, longitude, resp.text))
                 else:
                     raise ValueError((
                         'invalid value longitude -180 < lon < 180'

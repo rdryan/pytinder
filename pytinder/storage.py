@@ -34,6 +34,10 @@ class AuthStorage(object):
     def __init__(self):
         self._load()
 
+    @property
+    def raw(self):
+        return self._raw
+
     def _save(self):
         """ Save the raw dict to storage.
 
@@ -50,20 +54,27 @@ class AuthStorage(object):
         if utils.file_populated(self._save_to):
             self._raw = json.load(open(self._save_to, 'rb'))
 
-    def store_cred(self, id, fb_user, t_token):
+    def store_cred(self, fb_user, fb_token, fb_id, t_token, t_id):
         """ Build credential storage for access tokens.
 
-        :param id: Client Tinder id
         :param fb_user: Client Facebook login username
+        :param fb_token: Client Facebook access token
+        :param fb_id: Client Facebook id
         :param t_token: Client Tinder access token
+        :param t_id: Client Tinder id
 
         """
 
         glbl.LOG.debug((
             'storing credentials for user `{}` ({}) ...'
-        ).format(id, fb_user))
+        ).format(t_id, fb_user))
 
-        self._raw[id] = {'user': fb_user, 'tinder_access': t_token}
+        self._raw[t_id] = {
+            'user': fb_user,
+            'tinder_access': t_token,
+            'facebook_access': fb_token,
+            'facebook_id': fb_id
+        }
         self._save()
 
     def remove_cred(self, id):
