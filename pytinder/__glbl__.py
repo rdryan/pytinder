@@ -122,10 +122,11 @@ API_UPDATES_URL = '{}/updates'.format(API_BASE_URL)
 API_USER_URL = '{}/user'.format(API_BASE_URL)
 
 API_RECOMMENDATIONS_URL = '{}/recs'.format(API_USER_URL)
-# API_USER_URL = '{}/{{id}}'.format(API_USER_URL)
 API_PING_URL = '{}/ping'.format(API_USER_URL)
 API_MATCHES_URL = '{}/matches'.format(API_USER_URL)
 API_MESSAGE_URL = API_REMOVE_URL = '{}/{{id}}'.format(API_MATCHES_URL)
+
+USERNAME_BLACKLIST = ('Tinder Team',)
 
 
 FB_DEFAULT_URL = 'https://www.facebook.com/'

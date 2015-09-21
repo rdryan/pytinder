@@ -275,8 +275,9 @@ class Client(object):
                 return [
                     user.User(i)
                     for i in resp.json()['results']
+                    if i['name'] not in glbl.USERNAME_BLACKLIST
                 ]
-            except KeyError:
+            except ValueError, KeyError:
                 return []
         raise exceptions.TinderRetrievalException((
             'could not retrieve recommendations from `{}`, {}'
